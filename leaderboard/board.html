@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codelab Leaderboard</title>
+<style>
+  :root { --bg:#0f1412; --panel:#18201c; --ink:#e8efe9; --muted:#9db0a3; --accent:#7fd1a1; --warn:#f2a65a; --line:#2a352f; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui, sans-serif; padding:24px 16px; }
+  h1 { margin:0 0 4px; font-size:28px; }
+  p.sub { margin:0 0 24px; color:var(--muted); }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); }
+  section { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  h2 { margin:0 0 12px; font-size:17px; color:var(--accent); }
+  table { width:100%; border-collapse:collapse; }
+  td, th { text-align:left; padding:6px 4px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  th { color:var(--muted); font-weight:500; font-size:13px; }
+  .bar { height:8px; background:var(--line); border-radius:4px; overflow:hidden; }
+  .bar span { display:block; height:100%; background:var(--accent); }
+  .lost { color:var(--warn); }
+  .empty { color:var(--muted); }
+  a { color:var(--accent); word-break:break-all; }
+</style>
+</head>
+<body>
+<h1>AI Hub Codelab: Build, Break and Defend</h1>
+<p class="sub">Refreshes every 10 seconds.</p>
+<div class="grid">
+  <section><h2>Evaluation scores</h2><table id="evals"></table></section>
+  <section><h2>Red team: flags captured</h2><table id="attackers"></table><h2 style="margin-top:16px">Latest captures</h2><table id="recent"></table></section>
+  <section><h2>Targets</h2><table id="targets"></table></section>
+</div>
+<script>
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function fill(id, head, rows, empty) {
+  document.getElementById(id).innerHTML = rows.length
+    ? `<tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>` + rows.join('')
+    : `<tr><td class="empty">${empty}</td></tr>`;
+}
+async function refresh() {
+  try {
+    const b = await (await fetch('/api/board')).json();
+    fill('evals', ['Handle', 'Best', '', 'Runs'], b.evals.map(r =>
+      `<tr><td>${esc(r.handle)}</td><td>${r.best}%</td><td style="width:40%"><div class="bar"><span style="width:${r.best}%"></span></div></td><td>${r.runs}</td></tr>`), 'No scores yet.');
+    fill('attackers', ['Attacker', 'Flags'], b.attackers.map(r => `<tr><td>${esc(r.handle)}</td><td>${r.points}</td></tr>`), 'No captures yet.');
+    fill('recent', ['Who', 'From'], b.recent.map(r => `<tr><td>${esc(r.attacker)}</td><td>${esc(r.target)}</td></tr>`), 'Nothing yet.');
+    fill('targets', ['Handle', 'Lost', 'URL'], b.targets.map(r =>
+      `<tr><td>${esc(r.handle)}</td><td class="${r.lost ? 'lost' : ''}">${r.lost} of ${r.flags}</td><td><a href="${esc(r.url)}/dev-ui/" target="_blank" rel="noopener">${esc(r.url.replace('https://', ''))}</a></td></tr>`), 'No one has registered yet.');
+  } catch (e) { /* keep the last board on screen */ }
+}
+refresh(); setInterval(refresh, 10000);
+</script>
+</body>
+</html>
