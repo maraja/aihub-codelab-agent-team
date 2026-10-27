@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+.adk/
+.env
+.campus_desk_seed
+redteam/.sessions.json
+.pytest_cache/
