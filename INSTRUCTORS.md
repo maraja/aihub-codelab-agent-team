@@ -30,7 +30,7 @@ It keeps everything in memory, so it needs exactly one instance, always on, for 
 | Symptom | Fix |
 |---|---|
 | `make deploy` fails with a permission error from Cloud Build | Run `make setup` again; it grants `roles/run.builder` to the compute service account. |
-| The deployed desk answers with a 403 or "permission denied" from Vertex AI | The compute service account needs `roles/aiplatform.user`. `make setup` grants it. |
+| The deployed desk answers with a 403 or "permission denied" from Agent Platform (Vertex AI) | The compute service account needs `roles/aiplatform.user`. `make setup` grants it. |
 | Model not found | Check the model is available on the `global` endpoint, or set `CAMPUS_DESK_MODEL` to one that is. |
 | "Session not found" against a deployed desk | The service scaled past one instance. The deploy script sets `--max-instances=1`; check it wasn't changed. |
 | The desk won't start after Patch 1 | Expected until Patch 3 replaces `agent.py`. |
