@@ -4,7 +4,7 @@
 
 A block marked <!-- check: 1-crew/campus_desk/agent.py --> must appear,
 line for line, in that checkpoint file. For the crew agent.py, the
-after_model_callback lines are ignored, since the codelab adds them in step 7.
+after_model_callback lines are ignored, since the codelab adds them in the reviewer step.
 """
 
 import re

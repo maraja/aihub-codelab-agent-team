@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from . import config, store
 
-# Step 7a: add the ReviewVerdict schema here.
+# TODO: add the ReviewVerdict schema here.
 
 
 def _public_handbook() -> str:
@@ -21,7 +21,7 @@ def _public_handbook() -> str:
     )
 
 
-# Step 7b: add the reviewer agent here.
+# TODO: add the reviewer agent here.
 
 
 async def review(draft: str) -> ReviewVerdict:
@@ -36,4 +36,4 @@ async def review(draft: str) -> ReviewVerdict:
     return ReviewVerdict.model_validate_json(final_text)
 
 
-# Step 7c: add the review_reply callback here.
+# TODO: add the review_reply callback here.

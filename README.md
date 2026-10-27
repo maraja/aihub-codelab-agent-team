@@ -36,5 +36,5 @@ Everything in Ridgeview Polytechnic's data is made up: names, emails, phone numb
 Checked on October 27, 2026:
 
 - `google-adk==2.13.0` (Python 3.11 or newer)
-- Model: `gemini-3.8-flash` through Vertex AI's `global` endpoint. Change it with `CAMPUS_DESK_MODEL`.
+- Model: `gemini-3.8-flash` through Gemini Enterprise Agent Platform's `global` endpoint (formerly Vertex AI). Change it with `CAMPUS_DESK_MODEL`.
 - Cloud Run region: `northamerica-northeast2` (Toronto). Change it with `make deploy REGION=...`.

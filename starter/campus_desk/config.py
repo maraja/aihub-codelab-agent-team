@@ -2,7 +2,8 @@
 
 import os
 
-# Gemini runs through Vertex AI in your own Google Cloud project.
+# Gemini runs through Gemini Enterprise Agent Platform (formerly Vertex AI)
+# in your own Google Cloud project.
 os.environ.setdefault("GOOGLE_GENAI_USE_ENTERPRISE", "true")
 os.environ.setdefault("GOOGLE_CLOUD_LOCATION", "global")
 
