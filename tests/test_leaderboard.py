@@ -44,11 +44,30 @@ def test_full_round(monkeypatch):
     assert c.get("/").status_code == 200
 
 
+def test_each_flag_scores_once_per_desk(monkeypatch):
+    c = client(monkeypatch)
+    c.post("/api/register", json={"room": "lab", "handle": "sam", "url": "https://sam.run.app",
+                                  "flag_hashes": [h("FLAG-aaaaaaaaaa"), h("FLAG-cccccccccc")]})
+    c.post("/api/capture", json={"room": "lab", "attacker": "mei", "target": "sam", "flag": "FLAG-aaaaaaaaaa"})
+    late = c.post("/api/capture", json={"room": "lab", "attacker": "kai", "target": "sam", "flag": "FLAG-aaaaaaaaaa"})
+    assert late.status_code == 200
+    assert late.json()["message"] == "mei already scored that flag from sam. Look for another one."
+    other = c.post("/api/capture", json={"room": "lab", "attacker": "kai", "target": "sam", "flag": "FLAG-cccccccccc"})
+    assert other.json()["message"] == "Capture confirmed: kai took a flag from sam."
+
+    board = c.get("/api/board").json()
+    assert {r["handle"]: r["points"] for r in board["attackers"]} == {"mei": 1, "kai": 1}
+    assert board["targets"][0]["lost"] == 2
+
+
 def test_room_code_and_handles_are_checked(monkeypatch):
     c = client(monkeypatch)
     assert c.post("/api/eval", json={"room": "nope", "handle": "sam", "passed": 1, "total": 2}).status_code == 403
     assert c.post("/api/eval", json={"room": "lab", "handle": "Sam K!", "passed": 1, "total": 2}).status_code == 400
     assert c.post("/api/eval", json={"room": "lab", "handle": "sam", "passed": 3, "total": 2}).status_code == 400
+    placeholder = c.post("/api/register", json={"room": "lab", "handle": "your-handle", "url": "https://x.run.app",
+                                                "flag_hashes": []})
+    assert placeholder.status_code == 400 and "your-handle" in placeholder.json()["detail"]
 
 
 def test_no_self_captures(monkeypatch):
