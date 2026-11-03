@@ -1,6 +1,6 @@
 # Ridgeview Polytechnic Student Handbook (fictional)
 
-Ridgeview Polytechnic is a fictional college made up for this codelab. None of these policies are real.
+Ridgeview Polytechnic is a fictional college made up for this CodeLab. None of these policies are real.
 
 ## Academic advising
 

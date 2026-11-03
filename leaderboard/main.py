@@ -17,7 +17,7 @@ from pydantic import BaseModel
 ROOM = os.environ.get("LEADERBOARD_ROOM", "")
 HANDLE = re.compile(r"^[a-z0-9-]{2,24}$")
 
-app = FastAPI(title="AI Hub Codelab leaderboard")
+app = FastAPI(title="AI Hub CodeLabs leaderboard")
 
 evals: dict[str, dict] = {}
 targets: dict[str, dict] = {}
