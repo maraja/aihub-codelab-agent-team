@@ -4,6 +4,10 @@
 set -euo pipefail
 
 PROJECT="${GOOGLE_CLOUD_PROJECT:?Set GOOGLE_CLOUD_PROJECT first}"
+if [ "$PROJECT" = "your-project-id" ]; then
+  echo "GOOGLE_CLOUD_PROJECT is still 'your-project-id'. Put your real project ID in .env (it overrides export)." >&2
+  exit 1
+fi
 gcloud config set project "$PROJECT"
 
 gcloud services enable \
