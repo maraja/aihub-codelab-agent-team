@@ -1,4 +1,4 @@
-# AI Hub Codelab: Build, Break and Defend an AI Agent Team
+# AI Hub CodeLabs: Build, Break and Defend an AI Agent Team
 
 You'll build the **Campus Desk**, a team of AI agents that runs a help desk for Ridgeview Polytechnic (a fictional college). Then you'll put it on the cloud, try to break other participants' desks, and defend your own.
 

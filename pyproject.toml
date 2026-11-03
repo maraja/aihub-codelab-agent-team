@@ -1,7 +1,7 @@
 [project]
 name = "aihub-codelab-agent-team"
 version = "0.1.0"
-description = "AI Hub Codelab: Build, Break and Defend an AI Agent Team"
+description = "AI Hub CodeLabs: Build, Break and Defend an AI Agent Team"
 requires-python = ">=3.11"
 dependencies = [
     "google-adk==2.13.0",
