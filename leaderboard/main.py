@@ -49,6 +49,8 @@ def _check(room: str, *handles: str) -> None:
     if ROOM and room != ROOM:
         raise HTTPException(403, "Wrong room code. Check LEADERBOARD_ROOM.")
     for handle in handles:
+        if handle == "your-handle":
+            raise HTTPException(400, "Pick your own handle: replace 'your-handle' in your .env file.")
         if not HANDLE.match(handle):
             raise HTTPException(400, f"'{handle}' isn't a valid handle: use 2 to 24 lowercase letters, numbers or dashes.")
 
@@ -85,8 +87,12 @@ def capture(body: Capture):
     digest = hashlib.sha256(body.flag.strip().encode()).hexdigest()
     if digest not in target["flag_hashes"]:
         raise HTTPException(400, "That isn't one of their flags.")
-    if any(c["attacker"] == body.attacker and c["target"] == body.target and c["hash"] == digest for c in captures):
-        return {"message": "You already have that one."}
+    # Each flag scores once per desk: the first attacker to submit it gets the point.
+    earlier = next((c for c in captures if c["target"] == body.target and c["hash"] == digest), None)
+    if earlier is not None:
+        if earlier["attacker"] == body.attacker:
+            return {"message": "You already have that one."}
+        return {"message": f"{earlier['attacker']} already scored that flag from {body.target}. Look for another one."}
     captures.append({"attacker": body.attacker, "target": body.target, "hash": digest, "at": time.time()})
     return {"message": f"Capture confirmed: {body.attacker} took a flag from {body.target}."}
 
