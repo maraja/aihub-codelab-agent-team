@@ -6,7 +6,7 @@ export
 AGENT_DIR ?= starter
 REGION ?= northamerica-northeast2
 
-.PHONY: setup install web eval submit deploy teardown test
+.PHONY: setup install web eval submit deploy register teardown test
 
 setup:  ## One-time Google Cloud setup (APIs and permissions)
 	./scripts/setup_project.sh
@@ -30,6 +30,9 @@ submit:  ## Score your agents and post the score to the leaderboard
 
 deploy:  ## Deploy to Cloud Run and register on the leaderboard
 	CLOUD_RUN_REGION=$(REGION) ./scripts/deploy.sh $(AGENT_DIR)
+
+register:  ## Register your deployed desk on the leaderboard (no redeploy)
+	REGISTER_ONLY=1 CLOUD_RUN_REGION=$(REGION) ./scripts/deploy.sh $(AGENT_DIR)
 
 teardown:  ## Delete your Cloud Run service when the day is over
 	gcloud run services delete campus-desk --region $(REGION) --quiet

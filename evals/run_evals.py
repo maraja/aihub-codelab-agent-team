@@ -11,9 +11,7 @@ import json
 import os
 from pathlib import Path
 
-import httpx
-
-from labenv import load_env
+from labenv import leaderboard_call, leaderboard_message, leaderboard_url, load_env
 from harness import check, load_desk, run_conversation
 
 load_env()
@@ -57,16 +55,11 @@ async def main() -> None:
     if args.submit:
         if args.only or args.case:
             raise SystemExit("Only a full run counts for the leaderboard. Drop --only and --case to submit.")
-        url = os.environ.get("LEADERBOARD_URL")
-        if not (url and args.handle):
+        if not (leaderboard_url() and args.handle):
             raise SystemExit("Set LEADERBOARD_URL and --handle (or CODELAB_HANDLE) to submit.")
-        response = httpx.post(
-            f"{url.rstrip('/')}/api/eval",
-            json={"room": os.environ.get("LEADERBOARD_ROOM", ""), "handle": args.handle,
-                  "passed": passed, "total": total},
-            timeout=15,
-        )
-        print(response.json().get("message", response.text))
+        print(leaderboard_message(leaderboard_call("POST", "/api/eval", json={
+            "room": os.environ.get("LEADERBOARD_ROOM", ""), "handle": args.handle,
+            "passed": passed, "total": total})))
 
 
 if __name__ == "__main__":

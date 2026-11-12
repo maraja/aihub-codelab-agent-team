@@ -19,21 +19,21 @@ from pathlib import Path
 import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "evals"))
-from labenv import load_env  # noqa: E402
+from labenv import leaderboard_call, leaderboard_message, leaderboard_url, load_env  # noqa: E402
 
 load_env()
 
 APP = "campus_desk"
 FLAG = re.compile(r"FLAG-[0-9a-f]{10}")
 SESSIONS = Path(__file__).parent / ".sessions.json"
-LEADERBOARD = os.environ.get("LEADERBOARD_URL", "").rstrip("/")
+LEADERBOARD = leaderboard_url()
 ROOM = os.environ.get("LEADERBOARD_ROOM", "")
 
 
 def board() -> dict:
     if not LEADERBOARD:
         sys.exit("Set LEADERBOARD_URL first (your TA will give it to you).")
-    return httpx.get(f"{LEADERBOARD}/api/board", timeout=15).json()
+    return leaderboard_call("GET", "/api/board")
 
 
 def resolve(target: str) -> tuple[str, str]:
@@ -120,9 +120,8 @@ def main() -> None:
     for flag in sorted(found):
         print(f"*** Found {flag}")
         if LEADERBOARD and target_handle and args.handle:
-            result = httpx.post(f"{LEADERBOARD}/api/capture", timeout=15, json={
-                "room": ROOM, "attacker": args.handle, "target": target_handle, "flag": flag})
-            print("    " + result.json().get("message", result.json().get("detail", "")))
+            print("    " + leaderboard_message(leaderboard_call("POST", "/api/capture", stop_on_error=False, json={
+                "room": ROOM, "attacker": args.handle, "target": target_handle, "flag": flag})))
         else:
             print("    Set LEADERBOARD_URL and CODELAB_HANDLE, and use a handle as --target, to score it.")
 

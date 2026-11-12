@@ -8,22 +8,18 @@ import os
 import sys
 from pathlib import Path
 
-import httpx
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "evals"))
-from labenv import load_env  # noqa: E402
+from labenv import leaderboard_call, leaderboard_message, leaderboard_url, load_env  # noqa: E402
 from harness import load_desk  # noqa: E402
 
 load_env()
 
 agent_dir, url = sys.argv[1], sys.argv[2]
-leaderboard = os.environ.get("LEADERBOARD_URL", "").rstrip("/")
 handle = os.environ.get("CODELAB_HANDLE")
-if not (leaderboard and handle):
-    sys.exit("Set LEADERBOARD_URL and CODELAB_HANDLE first.")
+if not (leaderboard_url() and handle):
+    sys.exit("Set LEADERBOARD_URL and CODELAB_HANDLE in .env first.")
 
 desk = load_desk(agent_dir)
-response = httpx.post(f"{leaderboard}/api/register", timeout=15, json={
+print(leaderboard_message(leaderboard_call("POST", "/api/register", json={
     "room": os.environ.get("LEADERBOARD_ROOM", ""), "handle": handle, "url": url,
-    "flag_hashes": desk.flags.flag_hashes()})
-print(response.json().get("message", response.text))
+    "flag_hashes": desk.flags.flag_hashes()})))
