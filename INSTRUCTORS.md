@@ -8,16 +8,18 @@
 
 ## The leaderboard
 
-Deploy one copy from an instructor's project:
+Deploy one copy from an instructor's project, from this repo in Cloud Shell (after `make install` and `make setup`):
 
 ```shell
-gcloud run deploy codelab-leaderboard --source leaderboard \
-  --region northamerica-northeast2 --allow-unauthenticated \
-  --min-instances=1 --max-instances=1 \
-  --set-env-vars LEADERBOARD_ROOM=pick-a-room-code
+make leaderboard                  # makes up a room code
+make leaderboard ROOM=durham-nov  # or pick your own
 ```
 
-It keeps everything in memory, so it needs exactly one instance, always on, for the day. Put its URL on the big screen and give participants the URL and the room code.
+It prints the board's address for the big screen and the two lines participants put in their `.env` (`LEADERBOARD_URL` and `LEADERBOARD_ROOM`). The room code only stops people outside the room posting to the board; it isn't a password.
+
+- **Deploy it the morning of the day, not before.** It keeps everything in memory, so it runs as exactly one instance, always on, and it costs a little for every hour it's up.
+- **Don't redeploy it during the day.** A restart wipes the board. If it does happen, participants run `make register` to put their desks back and `make submit` to re-post their scores. Captures are lost.
+- **Delete it afterwards:** `make leaderboard-down`.
 
 ## Refereeing the red-team round
 
@@ -37,4 +39,4 @@ It keeps everything in memory, so it needs exactly one instance, always on, for 
 
 ## At the end
 
-Remind everyone to run `make teardown`. Then delete the leaderboard service.
+Remind everyone to run `make teardown`. Then run `make leaderboard-down`.

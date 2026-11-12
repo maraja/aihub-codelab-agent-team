@@ -6,7 +6,7 @@ export
 AGENT_DIR ?= starter
 REGION ?= northamerica-northeast2
 
-.PHONY: setup install web eval submit deploy register teardown test
+.PHONY: setup install web eval submit deploy register teardown leaderboard leaderboard-down test
 
 setup:  ## One-time Google Cloud setup (APIs and permissions)
 	./scripts/setup_project.sh
@@ -36,6 +36,12 @@ register:  ## Register your deployed desk on the leaderboard (no redeploy)
 
 teardown:  ## Delete your Cloud Run service when the day is over
 	gcloud run services delete campus-desk --region $(REGION) --quiet
+
+leaderboard:  ## Instructors: deploy the room's leaderboard (ROOM=... to pick the code)
+	CLOUD_RUN_REGION=$(REGION) ./scripts/leaderboard.sh
+
+leaderboard-down:  ## Instructors: delete the leaderboard at the end of the day
+	gcloud run services delete codelab-leaderboard --region $(REGION) --quiet
 
 test:  ## Offline tests of the lab's plumbing (no model calls)
 	uv run pytest -q tests
