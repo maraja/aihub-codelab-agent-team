@@ -14,8 +14,13 @@ setup:  ## One-time Google Cloud setup (APIs and permissions)
 install:  ## Install everything the lab needs
 	uv sync
 
+# Cloud Shell's Web Preview serves the page from *.cloudshell.dev. ADK 2.13
+# blocks requests from any origin that isn't localhost unless it's listed,
+# so without this the UI's scripts come back 403 and the page stays blank.
+WEB_ORIGINS ?= regex:https://[a-z0-9.-]+\.cloudshell\.dev
+
 web:  ## Chat with your agents in the browser (port 8000)
-	uv run adk web $(AGENT_DIR) --port 8000
+	uv run adk web $(AGENT_DIR) --port 8000 --allow_origins '$(WEB_ORIGINS)'
 
 eval:  ## Score your agents against the test cases
 	uv run python evals/run_evals.py $(AGENT_DIR)
