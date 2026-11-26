@@ -4,5 +4,8 @@ __pycache__/
 .adk/
 .env
 .campus_desk_seed
+.vault_seed
+.leaderboard_admin
+.leaderboard_room
 redteam/.sessions.json
 .pytest_cache/

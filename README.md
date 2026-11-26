@@ -12,6 +12,7 @@ The step-by-step lab lives on the AI Hub site. This repo has the code.
 | `evals/` | The test cases and the script that scores your desk. |
 | `redteam/` | The attack tool and the rules for the red-team round. |
 | `leaderboard/` | The room's scoreboard. Instructors run one copy. |
+| `vault/` | The Vault: the instructors' three-level challenge for the red-team round. `make leaderboard` deploys it with the board. |
 | `scripts/` | Project setup, deploy and leaderboard registration. |
 | `tests/` | Offline tests of the lab's plumbing. They use a scripted stand-in for Gemini, so they cost nothing. |
 

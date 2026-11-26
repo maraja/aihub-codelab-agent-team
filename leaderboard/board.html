@@ -5,48 +5,70 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CodeLabs Leaderboard</title>
 <style>
-  :root { --bg:#0f1412; --panel:#18201c; --ink:#e8efe9; --muted:#9db0a3; --accent:#7fd1a1; --warn:#f2a65a; --line:#2a352f; }
+  :root { --bg:#0f1412; --panel:#18201c; --ink:#e8efe9; --muted:#9db0a3; --accent:#7fd1a1; --warn:#f2a65a; --gold:#f2d06b; --line:#2a352f; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui, sans-serif; padding:24px 16px; }
   h1 { margin:0 0 4px; font-size:28px; }
   p.sub { margin:0 0 24px; color:var(--muted); }
-  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); }
   section { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; }
   h2 { margin:0 0 12px; font-size:17px; color:var(--accent); }
   table { width:100%; border-collapse:collapse; }
   td, th { text-align:left; padding:6px 4px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
   th { color:var(--muted); font-weight:500; font-size:13px; }
+  .num { text-align:right; }
+  .big { font-size:20px; font-weight:700; }
   .bar { height:8px; background:var(--line); border-radius:4px; overflow:hidden; }
   .bar span { display:block; height:100%; background:var(--accent); }
   .lost { color:var(--warn); }
   .empty { color:var(--muted); }
+  .pips { display:inline-flex; gap:4px; }
+  .pip { width:22px; height:22px; border-radius:6px; border:1px solid var(--line); color:var(--muted); font-size:12px; display:grid; place-items:center; }
+  .pip.on { background:var(--gold); border-color:var(--gold); color:#1b1600; font-weight:700; }
+  .levels { display:grid; gap:10px; }
+  .level { border:1px solid var(--line); border-radius:10px; padding:10px 12px; display:grid; grid-template-columns:1fr auto; gap:2px 12px; }
+  .level b { font-size:16px; }
+  .level .pts { color:var(--gold); font-weight:700; text-align:right; }
+  .level .meta { color:var(--muted); font-size:14px; grid-column:1 / -1; }
+  .feed td:first-child { width:60%; }
+  .first { color:var(--gold); font-weight:600; }
   a { color:var(--accent); word-break:break-all; }
 </style>
 </head>
 <body>
 <h1>AI Hub CodeLabs: Build, Break and Defend</h1>
-<p class="sub">Refreshes every 10 seconds.</p>
+<p class="sub">Desk flags: 1 point each, first to submit. The Vault: everyone can crack each level once; first in the room gets +2. Refreshes every 10 seconds.</p>
 <div class="grid">
-  <section><h2>Evaluation scores</h2><table id="evals"></table></section>
-  <section><h2>Red team: flags captured</h2><table id="attackers"></table><h2 style="margin-top:16px">Latest captures</h2><table id="recent"></table></section>
-  <section><h2>Targets</h2><table id="targets"></table></section>
+  <section><h2>Red team</h2><table id="attackers"></table></section>
+  <section><h2>The Vault</h2><div class="levels" id="vault"></div><h2 style="margin-top:16px">Latest captures</h2><table class="feed" id="recent"></table></section>
+  <section><h2>Desks</h2><table id="targets"></table><h2 style="margin-top:16px">Evaluation scores</h2><table id="evals"></table></section>
 </div>
 <script>
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function fill(id, head, rows, empty) {
   document.getElementById(id).innerHTML = rows.length
-    ? `<tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>` + rows.join('')
+    ? (head ? `<tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>` : '') + rows.join('')
     : `<tr><td class="empty">${empty}</td></tr>`;
 }
 async function refresh() {
   try {
     const b = await (await fetch('/api/board')).json();
-    fill('evals', ['Handle', 'Best', '', 'Runs'], b.evals.map(r =>
-      `<tr><td>${esc(r.handle)}</td><td>${r.best}%</td><td style="width:40%"><div class="bar"><span style="width:${r.best}%"></span></div></td><td>${r.runs}</td></tr>`), 'No scores yet.');
-    fill('attackers', ['Attacker', 'Flags'], b.attackers.map(r => `<tr><td>${esc(r.handle)}</td><td>${r.points}</td></tr>`), 'No captures yet.');
-    fill('recent', ['Who', 'From'], b.recent.map(r => `<tr><td>${esc(r.attacker)}</td><td>${esc(r.target)}</td></tr>`), 'Nothing yet.');
+    const levels = (b.vault || []).map(v => v.handle);
+    fill('attackers', ['#', 'Attacker', 'Desk flags', 'Vault', 'Points'], b.attackers.map((r, i) =>
+      `<tr><td>${i + 1}</td><td>${esc(r.handle)}</td><td class="num">${r.flags}</td>` +
+      `<td><span class="pips">${levels.map((h, n) => `<span class="pip ${r.vault.includes(h) ? 'on' : ''}">${n + 1}</span>`).join('')}</span></td>` +
+      `<td class="num big">${r.points}</td></tr>`), 'No captures yet.');
+    document.getElementById('vault').innerHTML = (b.vault || []).length
+      ? b.vault.map(v => `<div class="level"><b>${esc(v.title)}</b><span class="pts">${v.points} pts</span>` +
+          `<span class="meta">${v.cracked ? `Cracked by ${v.cracked}. First: <span class="first">${esc(v.first)}</span>` : 'Not cracked yet. First in gets +2.'}</span></div>`).join('')
+      : '<div class="empty">The Vault isn\'t open yet.</div>';
+    fill('recent', null, b.recent.map(r =>
+      `<tr><td>${esc(r.attacker)} ${r.vault ? `cracked ${esc(r.title)}` : `took a flag from ${esc(r.target)}`}</td>` +
+      `<td class="num">+${r.points}${r.vault && r.first ? ' <span class="first">first!</span>' : ''}</td></tr>`), 'Nothing yet.');
     fill('targets', ['Handle', 'Lost', 'URL'], b.targets.map(r =>
       `<tr><td>${esc(r.handle)}</td><td class="${r.lost ? 'lost' : ''}">${r.lost} of ${r.flags}</td><td><a href="${esc(r.url)}/dev-ui/" target="_blank" rel="noopener">${esc(r.url.replace('https://', ''))}</a></td></tr>`), 'No one has registered yet.');
+    fill('evals', ['Handle', 'Best', '', 'Runs'], b.evals.map(r =>
+      `<tr><td>${esc(r.handle)}</td><td>${r.best}%</td><td style="width:40%"><div class="bar"><span style="width:${r.best}%"></span></div></td><td>${r.runs}</td></tr>`), 'No scores yet.');
   } catch (e) { /* keep the last board on screen */ }
 }
 refresh(); setInterval(refresh, 10000);
