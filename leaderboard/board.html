@@ -199,9 +199,9 @@
 <script>
 const CAST_BASE = 'https://labs.theaihub.ca/keynote/cast/';
 const CREW = ['corgi', 'fox', 'duck', 'koala-verifier', 'koala'];
-const AVATARS = ['fox', 'corgi', 'duck', 'cat', 'beaver', 'owl', 'raccoon', 'frog', 'bear', 'badger', 'penguin', 'bunny',
-  'pig', 'squirrel', 'chameleon', 'robomouse', 'koala', 'koala-verifier', 'robot', 'robot-scholar', 'robot-mini',
-  'robot-listener', 'robot-curious'];
+// Players' characters. The team's own (corgi, fox, duck, the koalas) stand for agents on the desk, so they're left out.
+const AVATARS = ['cat', 'beaver', 'owl', 'raccoon', 'frog', 'bear', 'badger', 'penguin', 'bunny', 'pig', 'squirrel',
+  'chameleon', 'robomouse', 'robot', 'robot-scholar', 'robot-mini', 'robot-listener', 'robot-curious'];
 const TINTS = ['#5B74D6', '#3E8A62', '#C9573B', '#B8893A', '#C8577A', '#3B4652'];
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
