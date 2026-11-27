@@ -21,7 +21,7 @@ It keeps three files in this folder: `.leaderboard_room`, `.leaderboard_admin` (
 
 - **Deploy it the morning of the day, not before.** Both services keep everything in memory, so each runs as exactly one instance, always on, and costs a little for every hour it's up.
 - **Don't redeploy it during the day.** A restart wipes the board. If it does happen, run `make vault-register` to put the Vault back; participants run `make register` to put their desks back and `make submit` to re-post their scores. Captures are lost.
-- **Delete both afterwards:** `make leaderboard-down`.
+- **Delete both afterwards:** `make leaderboard-down`. It also deletes their container images, and once nothing else runs in the region, the shared container repository and uploaded source.
 
 `make leaderboard VAULT=0` deploys the board alone; `make vault` deploys the Vault on its own later.
 
@@ -53,4 +53,4 @@ How each level falls, with the attacks that worked in testing, is in the instruc
 
 ## At the end
 
-Remind everyone to run `make teardown`. Then run `make leaderboard-down`, which deletes the board and the Vault.
+Remind everyone to run `make teardown`, which deletes their desk, its container images and its uploaded source, then lists anything still running on Cloud Run in their project. Then run `make leaderboard-down`, which does the same for the board and the Vault.

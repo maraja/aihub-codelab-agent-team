@@ -27,7 +27,7 @@ cp .env.example .env   # then fill in your handle and the leaderboard details
 make web          # chat with your desk on port 8000
 make eval         # score it
 make deploy       # ship it to Cloud Run
-make teardown     # delete it at the end of the day
+make teardown     # delete it, its images and its uploaded code at the end of the day
 ```
 
 Everything in Ridgeview Polytechnic's data is made up: names, emails, phone numbers and policies.

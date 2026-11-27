@@ -5,8 +5,6 @@ export
 # Which folder to run: your work in starter/, or a finished checkpoint.
 AGENT_DIR ?= starter
 REGION ?= northamerica-northeast2
-# Delete in the same project the deploy scripts use, not gcloud's default.
-PROJECT_FLAG = $(if $(GOOGLE_CLOUD_PROJECT),--project $(GOOGLE_CLOUD_PROJECT))
 
 .PHONY: setup install web eval submit deploy register teardown leaderboard leaderboard-down vault vault-register test
 
@@ -36,15 +34,14 @@ deploy:  ## Deploy to Cloud Run and register on the leaderboard
 register:  ## Register your deployed desk on the leaderboard (no redeploy)
 	REGISTER_ONLY=1 CLOUD_RUN_REGION=$(REGION) ./scripts/deploy.sh $(AGENT_DIR)
 
-teardown:  ## Delete your Cloud Run service when the day is over
-	gcloud run services delete campus-desk --region $(REGION) $(PROJECT_FLAG) --quiet
+teardown:  ## Delete your desk, its container images and its uploaded code, so nothing keeps costing
+	CLOUD_RUN_REGION=$(REGION) ./scripts/teardown.sh campus-desk
 
 leaderboard:  ## Instructors: deploy the room's leaderboard and the Vault (ROOM=... to pick the code)
 	CLOUD_RUN_REGION=$(REGION) ./scripts/leaderboard.sh
 
-leaderboard-down:  ## Instructors: delete the leaderboard and the Vault at the end of the day
-	gcloud run services delete codelab-leaderboard --region $(REGION) $(PROJECT_FLAG) --quiet
-	-gcloud run services delete codelab-vault --region $(REGION) $(PROJECT_FLAG) --quiet
+leaderboard-down:  ## Instructors: delete the leaderboard, the Vault and their images at the end of the day
+	CLOUD_RUN_REGION=$(REGION) ./scripts/teardown.sh codelab-leaderboard codelab-vault
 
 vault:  ## Instructors: deploy the Vault on its own and put it on the leaderboard
 	CLOUD_RUN_REGION=$(REGION) ./scripts/vault.sh
