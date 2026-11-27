@@ -33,6 +33,14 @@ app = FastAPI(title="AI Hub CodeLabs leaderboard")
 evals: dict[str, dict] = {}
 targets: dict[str, dict] = {}
 captures: list[dict] = []
+# Each player's place in the order they first showed up, so the board can give
+# everyone a different character (first come, first served).
+arrivals: dict[str, int] = {}
+
+
+def _arrive(handle: str) -> None:
+    if not handle.startswith("vault-"):
+        arrivals.setdefault(handle, len(arrivals))
 
 
 class Registration(BaseModel):
@@ -86,6 +94,7 @@ def register(body: Registration):
         return {"message": f"Registered {body.handle} ({body.title}), worth {body.points} points."}
     targets[body.handle] = {"kind": "desk", "url": body.url.rstrip("/"), "app": body.app,
                             "flag_hashes": set(body.flag_hashes), "at": time.time()}
+    _arrive(body.handle)
     return {"message": f"Registered {body.handle}: {len(body.flag_hashes)} flags to defend at {body.url}"}
 
 
@@ -94,6 +103,7 @@ def submit_eval(body: EvalScore):
     _check(body.room, body.handle)
     if body.total <= 0 or not 0 <= body.passed <= body.total:
         raise HTTPException(400, "That score doesn't add up.")
+    _arrive(body.handle)
     entry = evals.setdefault(body.handle, {"best": 0, "history": []})
     score = round(100 * body.passed / body.total)
     entry["history"].append({"score": score, "passed": body.passed, "total": body.total, "at": time.time()})
@@ -121,6 +131,7 @@ def capture(body: Capture):
         raise HTTPException(404, f"No registered target called {body.target}.")
     flag = normalise(body.flag)
     digest = hashlib.sha256(flag.encode()).hexdigest()
+    _arrive(body.attacker)
 
     if target["kind"] == "vault":
         if not hmac.compare_digest(flag, vault_code(target["verify_key"], body.attacker)):
@@ -166,6 +177,7 @@ def board():
         # Not a secret: it only keeps people outside the room from posting, and the
         # board shows it so people can check their .env.
         "room": ROOM,
+        "arrivals": arrivals,
         "evals": sorted(
             ({"handle": h, "best": e["best"], "latest": e["history"][-1]["score"], "runs": len(e["history"])}
              for h, e in evals.items()),

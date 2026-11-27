@@ -199,9 +199,14 @@
 <script>
 const CAST_BASE = 'https://labs.theaihub.ca/keynote/cast/';
 const CREW = ['corgi', 'fox', 'duck', 'koala-verifier', 'koala'];
-// Players' characters. The team's own (corgi, fox, duck, the koalas) stand for agents on the desk, so they're left out.
-const AVATARS = ['cat', 'beaver', 'owl', 'raccoon', 'frog', 'bear', 'badger', 'penguin', 'bunny', 'pig', 'squirrel',
-  'chameleon', 'robomouse', 'robot', 'robot-scholar', 'robot-mini', 'robot-listener', 'robot-curious'];
+// Players' characters, handed out in the order people arrive, so the first 31 are all different; after
+// that the same characters come round again in new colours. The team's own (corgi, fox, duck, the koalas)
+// stand for agents on the desk, so they're left out.
+const AVATARS = ['cat', 'octopus', 'frog', 'parrot', 'bear', 'penguin', 'cheetah', 'pig', 'elephant', 'owl', 'goldfish',
+  'raccoon', 'hamster', 'chameleon', 'llama', 'bunny', 'spider', 'beaver', 'retriever', 'squirrel', 'hedgehog', 'badger',
+  'ant', 'sloth', 'robomouse', 'robot', 'robot-scholar', 'robot-mini', 'robot-listener', 'robot-curious', 'robot-sleepy'];
+const HUES = [0, 150, 250, 60, 300];
+let arrivals = {};
 const TINTS = ['#5B74D6', '#3E8A62', '#C9573B', '#B8893A', '#C8577A', '#3B4652'];
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -223,7 +228,10 @@ function avatar(handle, px = 2, sprite) {
   el.className = 'av';
   el.setAttribute('aria-hidden', 'true');
   if (px > 2) { el.style.width = `${22 * px}px`; el.style.height = `${22 * px}px`; }
-  const id = sprite || AVATARS[hashOf(handle) % AVATARS.length];
+  const n = sprite ? 0 : (arrivals[handle] ?? hashOf(handle));
+  const id = sprite || AVATARS[n % AVATARS.length];
+  const hue = sprite ? 0 : HUES[Math.floor(n / AVATARS.length) % HUES.length];
+  if (hue) el.style.filter = `hue-rotate(${hue}deg)`;
   const letter = () => { el.innerHTML = `<span class="letter" style="--c:${TINTS[hashOf(handle) % TINTS.length]}">${esc(String(handle)[0] || '?').toUpperCase()}</span>`; };
   castReady.then(() => {
     if (!CastApi || !CastApi.sprites[id]) return letter();
@@ -327,6 +335,7 @@ async function refresh() {
     return; // keep the last board on screen
   }
   const levels = b.vault || [];
+  arrivals = b.arrivals || {};
   if (b.room) $('room').textContent = ` · room ${b.room}`;
 
   // the numbers

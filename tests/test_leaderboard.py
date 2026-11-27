@@ -126,3 +126,11 @@ def test_vault_and_leaderboard_mint_the_same_codes(monkeypatch):
         sys.path.pop(0)
     key = vaultlib.level_key(2)
     assert sys.modules["main"].vault_code(key, "mei") == vaultlib.mint(key, "mei")
+
+
+def test_players_are_numbered_in_the_order_they_arrive(monkeypatch):
+    c = client(monkeypatch)
+    c.post("/api/eval", json={"room": "lab", "handle": "zed", "passed": 1, "total": 2})
+    c.post("/api/register", json={"room": "lab", "handle": "amy", "url": "https://amy.run.app", "flag_hashes": []})
+    c.post("/api/eval", json={"room": "lab", "handle": "zed", "passed": 2, "total": 2})
+    assert c.get("/api/board").json()["arrivals"] == {"zed": 0, "amy": 1}
