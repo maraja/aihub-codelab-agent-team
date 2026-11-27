@@ -41,6 +41,28 @@ gcloud run deploy "$SERVICE" \
   --set-env-vars "LEADERBOARD_ROOM=$ROOM,LEADERBOARD_ADMIN=$(cat .leaderboard_admin)"
 
 URL="$(gcloud run services describe "$SERVICE" --project "$PROJECT" --region "$REGION" --format='value(status.url)')"
+
+# .env.example can ship with the room's board already filled in, so nobody has
+# to type it. Cloud Run's fixed address is the service name, the project number
+# and the region, so check this board is the one it points at.
+SHIPPED_URL="$(sed -n 's/^LEADERBOARD_URL=//p' .env.example 2>/dev/null | head -1)"
+SHIPPED_ROOM="$(sed -n 's/^LEADERBOARD_ROOM=//p' .env.example 2>/dev/null | head -1)"
+if [ -n "$SHIPPED_URL" ] && [ "$SHIPPED_URL" != "https://the-url-your-ta-gives-you" ]; then
+  NUMBER="$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')"
+  FIXED="https://$SERVICE-$NUMBER.$REGION.run.app"
+  if [ "$SHIPPED_URL" = "$FIXED" ] && [ "$SHIPPED_ROOM" = "$ROOM" ]; then
+    URL="$FIXED"
+    echo
+    echo "This is the board .env.example points at, with its room code, so participants don't need to type anything."
+  else
+    echo
+    echo "WARNING: .env.example sends participants to $SHIPPED_URL, room $SHIPPED_ROOM."
+    echo "This board is at $FIXED, room $ROOM."
+    echo "Deploy from the project and region that address names, with: make leaderboard ROOM=$SHIPPED_ROOM"
+    echo "Or give the room the two lines below instead."
+  fi
+fi
+
 cat <<MSG
 
 The leaderboard is live. Put this on the big screen:

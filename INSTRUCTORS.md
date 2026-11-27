@@ -17,6 +17,8 @@ make leaderboard ROOM=durham-nov  # or pick your own
 
 It deploys two services. First the board: it prints its address for the big screen and the two lines participants put in their `.env` (`LEADERBOARD_URL` and `LEADERBOARD_ROOM`). The room code only stops people outside the room posting to the board; it isn't a password. Then **the Vault**, the instructors' three-level challenge for the red-team round, which it puts on the board for you. All told it takes about five minutes.
 
+**`.env.example` can carry the room's board,** so participants only type their project ID and handle. Cloud Run's fixed address is `https://codelab-leaderboard-<project number>.<region>.run.app`, so you know it before you deploy. Put that address and a room code in `.env.example` before the day, then deploy from that project, in that region, with that code (`make leaderboard ROOM=<the code>`). The script checks the board it made matches `.env.example`, and warns you if it doesn't. Put the placeholders back after the day. For the November 27, 2026 Developer Day, it's set to the instructor project in Toronto, with the room code `durham-nov27`.
+
 It keeps three files in this folder: `.leaderboard_room`, `.leaderboard_admin` (the instructors' key, which only the board and the Vault scripts use) and `.vault_seed`. Run every instructor command from the same folder, and don't share those files.
 
 - **Deploy it the morning of the day, not before.** Both services keep everything in memory, so each runs as exactly one instance, always on, and costs a little for every hour it's up.
