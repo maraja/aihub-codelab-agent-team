@@ -163,6 +163,9 @@ def board():
     desks = {h: t for h, t in targets.items() if t["kind"] == "desk"}
     levels = {h: t for h, t in targets.items() if t["kind"] == "vault"}
     return {
+        # Not a secret: it only keeps people outside the room from posting, and the
+        # board shows it so people can check their .env.
+        "room": ROOM,
         "evals": sorted(
             ({"handle": h, "best": e["best"], "latest": e["history"][-1]["score"], "runs": len(e["history"])}
              for h, e in evals.items()),

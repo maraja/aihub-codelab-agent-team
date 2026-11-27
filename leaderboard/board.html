@@ -3,75 +3,422 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CodeLabs Leaderboard</title>
+<title>Leaderboard · Build, Break and Defend · AI Hub CodeLabs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#0f1412; --panel:#18201c; --ink:#e8efe9; --muted:#9db0a3; --accent:#7fd1a1; --warn:#f2a65a; --gold:#f2d06b; --line:#2a352f; }
+  /* The AI Hub CodeLabs look: the keynote's paper palette, Archivo and Fira Code,
+     white cards on soft shadows, and Amit's pixel crew (loaded from labs.theaihub.ca;
+     without it, players get a lettered badge instead and everything else works). */
+  :root {
+    --ground: #EEF1EE; --paper: #FAFAF8; --card: #FFFFFF;
+    --ink: #242D39; --grey: #454E58; --soft: #6B747D; --line: #DCE2DE; --hair: rgba(36, 45, 57, 0.08);
+    --green: #007853; --green-2: #4B986F; --mint: #DFEDE6; --mint-2: #EFF6F3;
+    --leak: #B3261E; --gold: #C9932A; --gold-2: #FBF1DA;
+    --lift-1: 0 1px 2px rgba(36, 45, 57, 0.05), 0 4px 12px -6px rgba(36, 45, 57, 0.12);
+    --lift-2: 0 1px 2px rgba(36, 45, 57, 0.05), 0 24px 54px -28px rgba(36, 45, 57, 0.34);
+    --sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+    --mono: "Fira Code", ui-monospace, Menlo, monospace;
+  }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui, sans-serif; padding:24px 16px; }
-  h1 { margin:0 0 4px; font-size:28px; }
-  p.sub { margin:0 0 24px; color:var(--muted); }
-  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); }
-  section { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; }
-  h2 { margin:0 0 12px; font-size:17px; color:var(--accent); }
-  table { width:100%; border-collapse:collapse; }
-  td, th { text-align:left; padding:6px 4px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
-  th { color:var(--muted); font-weight:500; font-size:13px; }
-  .num { text-align:right; }
-  .big { font-size:20px; font-weight:700; }
-  .bar { height:8px; background:var(--line); border-radius:4px; overflow:hidden; }
-  .bar span { display:block; height:100%; background:var(--accent); }
-  .lost { color:var(--warn); }
-  .empty { color:var(--muted); }
-  .pips { display:inline-flex; gap:4px; }
-  .pip { width:22px; height:22px; border-radius:6px; border:1px solid var(--line); color:var(--muted); font-size:12px; display:grid; place-items:center; }
-  .pip.on { background:var(--gold); border-color:var(--gold); color:#1b1600; font-weight:700; }
-  .levels { display:grid; gap:10px; }
-  .level { border:1px solid var(--line); border-radius:10px; padding:10px 12px; display:grid; grid-template-columns:1fr auto; gap:2px 12px; }
-  .level b { font-size:16px; }
-  .level .pts { color:var(--gold); font-weight:700; text-align:right; }
-  .level .meta { color:var(--muted); font-size:14px; grid-column:1 / -1; }
-  .feed td:first-child { width:60%; }
-  .first { color:var(--gold); font-weight:600; }
-  a { color:var(--accent); word-break:break-all; }
+  html { font-size: clamp(14px, 0.95vw, 19px); }
+  body { margin: 0; background: var(--ground); color: var(--ink); font: 1rem/1.45 var(--sans); -webkit-font-smoothing: antialiased; }
+  .mono { font-family: var(--mono); }
+  .wrap { max-width: 1800px; margin: 0 auto; padding: 0 clamp(14px, 2.4vw, 44px) 40px; }
+
+  /* top bar */
+  .top { position: sticky; top: 0; z-index: 10; background: rgba(250, 250, 248, 0.84); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: 1px solid var(--hair); }
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 4rem; padding-bottom: 0; }
+  .brand { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; font-stretch: 78%; font-size: 1.3rem; letter-spacing: 0.02em; }
+  .mark { width: 2rem; height: 2rem; border-radius: 0.55rem; background: var(--ink); position: relative; overflow: hidden; box-shadow: var(--lift-1); }
+  .mark::after { content: ""; position: absolute; left: 0.38rem; right: 0.38rem; bottom: -0.55rem; height: 1.2rem; border-radius: 50% 50% 0 0; background: var(--green-2); }
+  .mark::before { content: ""; position: absolute; left: 0.25rem; right: 0.25rem; bottom: 0.44rem; height: 1.5px; background: var(--mint); z-index: 1; }
+  .chip { display: inline-flex; align-items: center; height: 1.55rem; padding: 0 0.7rem; border-radius: 999px; background: var(--mint); color: var(--green); font: 500 0.7rem/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
+  .live { display: flex; align-items: center; gap: 0.6rem; font: 500 0.78rem/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); }
+  .live i { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--green-2); box-shadow: 0 0 0 0 rgba(75, 152, 111, 0.6); animation: pulse 2s infinite; }
+  .live.stale i { background: var(--gold); animation: none; }
+  @keyframes pulse { 70% { box-shadow: 0 0 0 0.6rem rgba(75, 152, 111, 0); } 100% { box-shadow: 0 0 0 0 rgba(75, 152, 111, 0); } }
+
+  /* header */
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 1.5rem 3rem; padding: 2.4rem 0 1.6rem; }
+  .eyebrow { margin: 0; font: 500 0.78rem/1.4 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); }
+  h1 { margin: 0.4rem 0 0; font-weight: 650; font-stretch: 78%; font-size: clamp(2.6rem, 4.6vw, 5.2rem); line-height: 0.98; letter-spacing: 0; }
+  h1 mark { background: none; color: var(--green); }
+  .lead { margin: 0.8rem 0 0; max-width: 62ch; color: var(--grey); font-size: 1.08rem; }
+  .crew { display: flex; align-items: flex-end; gap: 0.2rem; padding-bottom: 0.6rem; }
+  .crew .av { margin: 0 -0.5rem; }
+  .stats { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.8rem; }
+  .stat { background: var(--card); border: 1px solid var(--hair); border-radius: 1.1rem; box-shadow: var(--lift-1); padding: 0.85rem 1.1rem; }
+  .stat b { display: block; font-weight: 650; font-stretch: 78%; font-size: 2.3rem; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat span { display: block; margin-top: 0.25rem; color: var(--soft); font-size: 0.92rem; }
+  .stat.leak b { color: var(--leak); }
+  .stat.gold b { color: var(--gold); }
+
+  /* cards */
+  .grid { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 1.2rem; align-items: start; }
+  .card { background: var(--card); border: 1px solid var(--hair); border-radius: 1.5rem; box-shadow: var(--lift-2); padding: 1.3rem 1.4rem 1.4rem; min-width: 0; }
+  .card h2 { margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-weight: 650; font-stretch: 78%; font-size: 1.85rem; line-height: 1.1; }
+  .card h2 small, .card h3 small { font: 500 0.7rem/1 var(--mono); letter-spacing: 0.07em; text-transform: uppercase; color: var(--soft); }
+  .card h3 { margin: 1.5rem 0 0.2rem; display: flex; justify-content: space-between; align-items: baseline; font-weight: 650; font-stretch: 78%; font-size: 1.35rem; }
+  .card p.note { margin: 0.35rem 0 0; color: var(--soft); font-size: 0.9rem; }
+  ol, ul { list-style: none; margin: 0; padding: 0; }
+  .empty { padding: 1.2rem 0 0.4rem; color: var(--soft); }
+
+  /* player rows */
+  .rows { margin-top: 0.8rem; display: grid; gap: 0.25rem; }
+  .row { display: grid; grid-template-columns: 2.2rem 3.2rem minmax(0, 1fr) auto; align-items: center; gap: 0.6rem; padding: 0.35rem 0.6rem 0.35rem 0.35rem; border-radius: 0.95rem; transition: background 0.3s ease; }
+  .row:nth-child(-n + 3) { background: var(--paper); }
+  .row .rank { font: 500 0.95rem/1 var(--mono); color: var(--soft); text-align: center; }
+  .row:nth-child(1) .rank { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 0.6rem; background: var(--ink); color: #fff; }
+  .row:nth-child(2) .rank, .row:nth-child(3) .rank { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 0.6rem; background: var(--mint); color: var(--green); }
+  .row .who { min-width: 0; }
+  .row .who b { display: block; font-weight: 650; font-size: 1.12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .who > span { display: block; color: var(--soft); font-size: 0.86rem; }
+  .row .pts { font-weight: 650; font-stretch: 78%; font-size: 1.9rem; line-height: 1; font-variant-numeric: tabular-nums; text-align: right; }
+  .row .pts small { display: block; font: 500 0.62rem/1.2 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); }
+  .row.flash { background: var(--gold-2) !important; }
+
+  .av { position: relative; display: inline-grid; place-items: end center; width: 3.2rem; height: 3.2rem; }
+  .av .letter { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; margin-bottom: 0.2rem; border-radius: 0.7rem; background: var(--c, var(--mint)); color: #fff; font-weight: 700; font-size: 1.1rem; }
+  .av .cast-bubble { font-family: var(--mono), "Apple Color Emoji", "Segoe UI Emoji"; }
+
+  .pips { display: inline-flex; gap: 0.25rem; vertical-align: middle; }
+  .pip { display: grid; place-items: center; width: 1.35rem; height: 1.35rem; border-radius: 0.4rem; border: 1px solid var(--line); background: #fff; color: var(--soft); font: 500 0.66rem/1 var(--mono); }
+  .pip.on { background: var(--gold); border-color: var(--gold); color: #fff; }
+  .pip.lost { background: var(--leak); border-color: var(--leak); }
+
+  /* the Vault */
+  .vault-head { display: flex; align-items: flex-end; gap: 0.6rem; }
+  .levels { margin-top: 0.9rem; display: grid; gap: 0.6rem; }
+  .level { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr) auto; gap: 0.2rem 0.8rem; align-items: center; padding: 0.8rem 0.9rem; border-radius: 1rem; background: var(--paper); border: 1px solid var(--hair); }
+  .level.open { background: var(--gold-2); border-color: rgba(201, 147, 42, 0.35); }
+  .level .lk { grid-row: span 2; display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 0.8rem; background: #fff; box-shadow: var(--lift-1); }
+  .level b { font-weight: 650; font-size: 1.05rem; }
+  .level .val { grid-row: span 2; text-align: right; font-weight: 650; font-stretch: 78%; font-size: 1.7rem; line-height: 1; color: var(--gold); }
+  .level .val small { display: block; font: 500 0.6rem/1.2 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); }
+  .level .meta { color: var(--grey); font-size: 0.88rem; }
+  .level .meta em { font-style: normal; font-weight: 650; color: var(--ink); }
+
+  .feed { margin-top: 0.5rem; display: grid; gap: 0.2rem; }
+  .feed li { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr) auto; align-items: center; gap: 0.55rem; padding: 0.3rem 0.4rem 0.3rem 0.2rem; border-radius: 0.8rem; animation: in 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+  .feed li .av { width: 2.4rem; height: 2.4rem; }
+  .feed li p { margin: 0; font-size: 0.95rem; line-height: 1.3; }
+  .feed li p span { color: var(--soft); }
+  .feed li .plus { font: 500 0.95rem/1 var(--mono); color: var(--green); }
+  .feed li .plus.first { color: var(--gold); }
+  @keyframes in { from { opacity: 0; translate: 0 -6px; } }
+
+  /* desks and evals */
+  .desk { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr) auto; align-items: center; gap: 0.55rem; padding: 0.3rem 0.3rem 0.3rem 0.2rem; border-radius: 0.8rem; }
+  .desk .av { width: 2.4rem; height: 2.4rem; }
+  .desk b { font-weight: 650; }
+  .desk a { display: block; color: var(--green); font: 0.74rem/1.3 var(--mono); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .desk a:hover { text-decoration: underline; }
+  .flags { display: inline-flex; gap: 0.2rem; }
+  .flags i { width: 0.75rem; height: 1rem; border-radius: 0.15rem; background: var(--mint); box-shadow: inset 0 0 0 1px rgba(0, 120, 83, 0.15); }
+  .flags i.gone { background: var(--leak); box-shadow: none; }
+  .ev { display: grid; grid-template-columns: 2.4rem minmax(0, 7rem) minmax(0, 1fr) 3.2rem; align-items: center; gap: 0.55rem; padding: 0.25rem 0.2rem; }
+  .ev .av { width: 2.4rem; height: 2.4rem; }
+  .ev b { font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar { height: 0.7rem; border-radius: 999px; background: var(--mint-2); overflow: hidden; box-shadow: inset 0 0 0 1px rgba(0, 120, 83, 0.1); }
+  .bar span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--green-2), var(--green)); transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+  .ev .pc { text-align: right; font: 500 0.95rem/1 var(--mono); font-variant-numeric: tabular-nums; }
+
+  /* a capture, announced */
+  .toast { position: fixed; left: 50%; bottom: 1.6rem; z-index: 20; display: flex; align-items: center; gap: 1rem; max-width: min(92vw, 52rem); padding: 0.8rem 1.6rem 0.8rem 1rem; border-radius: 1.4rem; background: var(--ink); color: #fff; box-shadow: 0 30px 60px -20px rgba(17, 22, 28, 0.6); translate: -50% 140%; opacity: 0; transition: translate 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease; }
+  .toast.show { translate: -50% 0; opacity: 1; }
+  .toast .av { flex: none; }
+  .toast p { margin: 0; font-size: 1.25rem; line-height: 1.25; }
+  .toast p small { display: block; font: 500 0.72rem/1.3 var(--mono); letter-spacing: 0.07em; text-transform: uppercase; color: #F2D27A; }
+
+  .foot { margin-top: 1.4rem; display: flex; justify-content: space-between; gap: 1rem; color: var(--soft); font: 0.74rem/1.4 var(--mono); letter-spacing: 0.04em; }
+
+  @media (max-width: 1200px) { .grid { grid-template-columns: 1fr 1fr; } .grid > :first-child { grid-column: 1 / -1; } }
+  @media (max-width: 760px) {
+    .grid { grid-template-columns: 1fr; }
+    .hero { grid-template-columns: 1fr; }
+    .crew { display: none; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .live span { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .live i, .feed li, .toast { animation: none; transition: none; } }
 </style>
 </head>
 <body>
-<h1>AI Hub CodeLabs: Build, Break and Defend</h1>
-<p class="sub">Desk flags: 1 point each, first to submit. The Vault: everyone can crack each level once; first in the room gets +2. Refreshes every 10 seconds.</p>
-<div class="grid">
-  <section><h2>Red team</h2><table id="attackers"></table></section>
-  <section><h2>The Vault</h2><div class="levels" id="vault"></div><h2 style="margin-top:16px">Latest captures</h2><table class="feed" id="recent"></table></section>
-  <section><h2>Desks</h2><table id="targets"></table><h2 style="margin-top:16px">Evaluation scores</h2><table id="evals"></table></section>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><span class="mark" aria-hidden="true"></span>AI HUB <span class="chip">CodeLabs</span></div>
+    <div class="live" id="live"><i aria-hidden="true"></i><span>Live · updates every 10 seconds</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">The leaderboard<span id="room"></span></p>
+      <h1>Build, Break and <mark>Defend</mark></h1>
+      <p class="lead">Every desk hides five flags: 1 point each, for the first person to submit it. The Vault's three levels score for everyone who cracks them, and the first in the room gets 2 more.</p>
+    </div>
+    <div class="crew" id="crew" aria-hidden="true"></div>
+    <div class="stats">
+      <div class="stat"><b id="s-desks">0</b><span>desks live</span></div>
+      <div class="stat leak"><b id="s-flags">0</b><span>flags taken</span></div>
+      <div class="stat gold"><b id="s-vault">0</b><span>Vault cracks</span></div>
+      <div class="stat"><b id="s-best">–</b><span>best eval score</span></div>
+    </div>
+  </section>
+
+  <main class="grid">
+    <section class="card">
+      <h2>Red team <small>points</small></h2>
+      <p class="note">Desk flags, and the Vault levels each player has cracked.</p>
+      <ol class="rows" id="attackers"></ol>
+    </section>
+
+    <section class="card">
+      <h2><span class="vault-head"><span>The Vault</span><span class="av" id="vault-guard" aria-hidden="true"></span></span><small>the Registrar's Office</small></h2>
+      <div class="levels" id="vault"></div>
+      <h3>Latest captures</h3>
+      <ol class="feed" id="recent"></ol>
+    </section>
+
+    <section class="card">
+      <h2>Desks <small>flags left</small></h2>
+      <ul class="rows" id="targets"></ul>
+      <h3>Evaluation scores <small>best of each</small></h3>
+      <ol id="evals"></ol>
+    </section>
+  </main>
+
+  <p class="foot"><span>AI Hub CodeLabs · Build, Break and Defend</span><span>labs.theaihub.ca/en/codelabs/build-break-defend</span></p>
 </div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script>
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function fill(id, head, rows, empty) {
-  document.getElementById(id).innerHTML = rows.length
-    ? (head ? `<tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>` : '') + rows.join('')
-    : `<tr><td class="empty">${empty}</td></tr>`;
+const CAST_BASE = 'https://labs.theaihub.ca/keynote/cast/';
+const CREW = ['corgi', 'fox', 'duck', 'koala-verifier', 'koala'];
+const AVATARS = ['fox', 'corgi', 'duck', 'cat', 'beaver', 'owl', 'raccoon', 'frog', 'bear', 'badger', 'penguin', 'bunny',
+  'pig', 'squirrel', 'chameleon', 'robomouse', 'koala', 'koala-verifier', 'robot', 'robot-scholar', 'robot-mini',
+  'robot-listener', 'robot-curious'];
+const TINTS = ['#5B74D6', '#3E8A62', '#C9573B', '#B8893A', '#C8577A', '#3B4652'];
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const hashOf = (s) => { let h = 7; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h); };
+const $ = (id) => document.getElementById(id);
+
+/* ---------- the pixel crew ---------- */
+let CastApi = null; // not `Cast`: a top-level let would hide the engine's own global from pixel-crew.js
+const actors = new Set();
+function loadScript(src) {
+  return new Promise((ok, fail) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = fail; document.head.appendChild(s); });
 }
+const castReady = loadScript(CAST_BASE + 'cast.js').then(() => loadScript(CAST_BASE + 'pixel-crew.js'))
+  .then(() => { CastApi = window.Cast; }).catch(() => {});
+
+/** A player's character: the same one for the same handle, every time. */
+function avatar(handle, px = 2, sprite) {
+  const el = document.createElement('span');
+  el.className = 'av';
+  el.setAttribute('aria-hidden', 'true');
+  if (px > 2) { el.style.width = `${22 * px}px`; el.style.height = `${22 * px}px`; }
+  const id = sprite || AVATARS[hashOf(handle) % AVATARS.length];
+  const letter = () => { el.innerHTML = `<span class="letter" style="--c:${TINTS[hashOf(handle) % TINTS.length]}">${esc(String(handle)[0] || '?').toUpperCase()}</span>`; };
+  castReady.then(() => {
+    if (!CastApi || !CastApi.sprites[id]) return letter();
+    const a = CastApi.sprite(el, { id, unit: 'px', px, seed: handle, z: 1 });
+    const rec = { a, el, keys: [{ at: -10, act: 'idle', x: 50, y: 100 }], t0: performance.now() };
+    a.play(1, rec.keys);
+    el._actor = rec;
+    actors.add(rec);
+  });
+  return el;
+}
+function cheer(el, act = 'celebrate', secs = 2.4) {
+  const rec = el && el._actor;
+  if (!rec) return;
+  const now = (performance.now() - rec.t0) / 1000;
+  rec.keys = [{ at: -10, act: 'idle', x: 50, y: 100 }, { at: now, act }, { at: now + secs, act: 'idle' }];
+}
+function frame() {
+  for (const rec of actors) {
+    if (!rec.el.isConnected) { actors.delete(rec); continue; }
+    rec.a.play(reduced ? 999 : (performance.now() - rec.t0) / 1000, rec.keys);
+  }
+  if (!reduced) requestAnimationFrame(frame);
+}
+castReady.then(() => requestAnimationFrame(frame));
+
+CREW.forEach((id, i) => $('crew').appendChild(avatar('crew-' + id, 5, id)));
+$('vault-guard').replaceWith(Object.assign(avatar('vault-guard', 2, 'koala'), { id: 'vault-guard' }));
+
+/* ---------- pixel locks ---------- */
+const LOCK = {
+  shut: ['....kkkk....', '...kwwwwk...', '...kw..wk...', '..kkkkkkkk..', '..kyyyyyyk..', '..kyyykyyk..', '..kyyykyyk..', '..kyyyyyyk..', '..kkkkkkkk..'],
+  open: ['........kkkk', '.......kwwwwk', '.......kw..wk', '..kkkkkkkk...', '..kggggggk..', '..kgggkggk..', '..kgggkggk..', '..kggggggk..', '..kkkkkkkk..'],
+};
+const PAL = { k: '#23241E', w: '#F7F3EA', y: '#E9BE45', g: '#3E8A62' };
+function lockSvg(open) {
+  const rows = LOCK[open ? 'open' : 'shut'];
+  let r = '';
+  rows.forEach((row, y) => [...row].forEach((c, x) => { if (PAL[c]) r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${PAL[c]}"/>`; }));
+  return `<svg viewBox="0 0 13 9" width="30" height="21" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
+
+/* ---------- keyed lists: rows keep their character, and slide when the order changes ---------- */
+function sync(list, items, key, build, update) {
+  const before = new Map([...list.children].filter((c) => c.dataset.key).map((c) => [c.dataset.key, c.getBoundingClientRect().top]));
+  const keep = new Map([...list.children].filter((c) => c.dataset.key).map((c) => [c.dataset.key, c]));
+  list.querySelectorAll('.empty').forEach((e) => e.remove());
+  const seen = new Set();
+  items.forEach((item, i) => {
+    const k = key(item);
+    seen.add(k);
+    let el = keep.get(k);
+    if (!el) { el = build(item); el.dataset.key = k; }
+    update(el, item, i);
+    list.appendChild(el);
+  });
+  keep.forEach((el, k) => { if (!seen.has(k)) el.remove(); });
+  if (!reduced) {
+    for (const el of list.children) {
+      const was = before.get(el.dataset.key);
+      if (was === undefined) continue;
+      const dy = was - el.getBoundingClientRect().top;
+      if (Math.abs(dy) > 1) el.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 600, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+    }
+  }
+}
+function empty(list, text) {
+  if (list.children.length) return;
+  const li = document.createElement('li');
+  li.className = 'empty';
+  li.textContent = text;
+  list.appendChild(li);
+}
+
+/* ---------- the board ---------- */
+let lastCapture = null;
+let toastTimer = 0;
+function announce(c, b) {
+  const t = $('toast');
+  const lvl = (b.vault || []).find((v) => v.handle === c.target);
+  t.innerHTML = '';
+  t.appendChild(avatar(c.attacker, 3));
+  const p = document.createElement('p');
+  p.innerHTML = c.vault
+    ? `<small>${c.first ? 'First in the room · ' : ''}+${c.points} points</small><b>${esc(c.attacker)}</b> cracked ${esc((lvl && lvl.title) || c.title || c.target)}`
+    : `<small>Flag captured · +1 point</small><b>${esc(c.attacker)}</b> took a flag from ${esc(c.target)}`;
+  t.appendChild(p);
+  setTimeout(() => cheer(t.querySelector('.av')), 60);
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 6000);
+}
+
 async function refresh() {
+  let b;
   try {
-    const b = await (await fetch('/api/board')).json();
-    const levels = (b.vault || []).map(v => v.handle);
-    fill('attackers', ['#', 'Attacker', 'Desk flags', 'Vault', 'Points'], b.attackers.map((r, i) =>
-      `<tr><td>${i + 1}</td><td>${esc(r.handle)}</td><td class="num">${r.flags}</td>` +
-      `<td><span class="pips">${levels.map((h, n) => `<span class="pip ${r.vault.includes(h) ? 'on' : ''}">${n + 1}</span>`).join('')}</span></td>` +
-      `<td class="num big">${r.points}</td></tr>`), 'No captures yet.');
-    document.getElementById('vault').innerHTML = (b.vault || []).length
-      ? b.vault.map(v => `<div class="level"><b>${esc(v.title)}</b><span class="pts">${v.points} pts</span>` +
-          `<span class="meta">${v.cracked ? `Cracked by ${v.cracked}. First: <span class="first">${esc(v.first)}</span>` : 'Not cracked yet. First in gets +2.'}</span></div>`).join('')
-      : '<div class="empty">The Vault isn\'t open yet.</div>';
-    fill('recent', null, b.recent.map(r =>
-      `<tr><td>${esc(r.attacker)} ${r.vault ? `cracked ${esc(r.title)}` : `took a flag from ${esc(r.target)}`}</td>` +
-      `<td class="num">+${r.points}${r.vault && r.first ? ' <span class="first">first!</span>' : ''}</td></tr>`), 'Nothing yet.');
-    fill('targets', ['Handle', 'Lost', 'URL'], b.targets.map(r =>
-      `<tr><td>${esc(r.handle)}</td><td class="${r.lost ? 'lost' : ''}">${r.lost} of ${r.flags}</td><td><a href="${esc(r.url)}/dev-ui/" target="_blank" rel="noopener">${esc(r.url.replace('https://', ''))}</a></td></tr>`), 'No one has registered yet.');
-    fill('evals', ['Handle', 'Best', '', 'Runs'], b.evals.map(r =>
-      `<tr><td>${esc(r.handle)}</td><td>${r.best}%</td><td style="width:40%"><div class="bar"><span style="width:${r.best}%"></span></div></td><td>${r.runs}</td></tr>`), 'No scores yet.');
-  } catch (e) { /* keep the last board on screen */ }
+    b = await (await fetch('/api/board', { cache: 'no-store' })).json();
+    $('live').classList.remove('stale');
+  } catch (e) {
+    $('live').classList.add('stale');
+    return; // keep the last board on screen
+  }
+  const levels = b.vault || [];
+  if (b.room) $('room').textContent = ` · room ${b.room}`;
+
+  // the numbers
+  $('s-desks').textContent = b.targets.length;
+  $('s-flags').textContent = b.targets.reduce((n, t) => n + t.lost, 0);
+  $('s-vault').textContent = levels.reduce((n, v) => n + v.cracked, 0);
+  $('s-best').textContent = b.evals.length ? `${b.evals[0].best}%` : '–';
+
+  // red team
+  sync($('attackers'), b.attackers, (r) => r.handle, (r) => {
+    const li = document.createElement('li');
+    li.className = 'row';
+    li.innerHTML = '<span class="rank"></span><span class="slot"></span><span class="who"><b></b><span></span></span><span class="pts"></span>';
+    li.querySelector('.slot').replaceWith(avatar(r.handle, 2));
+    return li;
+  }, (li, r, i) => {
+    li.querySelector('.rank').textContent = i + 1;
+    li.querySelector('.who b').textContent = r.handle;
+    const pips = levels.map((v, n) => `<i class="pip ${r.vault.includes(v.handle) ? 'on' : ''}" title="${esc(v.title)}">${n + 1}</i>`).join('');
+    li.querySelector('.who span').innerHTML = `${r.flags} desk flag${r.flags === 1 ? '' : 's'}${pips ? ` · Vault <span class="pips">${pips}</span>` : ''}`;
+    if (li.dataset.points && li.dataset.points !== String(r.points)) {
+      li.classList.add('flash');
+      setTimeout(() => li.classList.remove('flash'), 1600);
+      cheer(li.querySelector('.av'));
+    }
+    li.dataset.points = r.points;
+    li.querySelector('.pts').innerHTML = `${r.points}<small>points</small>`;
+  });
+  empty($('attackers'), 'No captures yet. The first flag is out there.');
+
+  // the Vault
+  $('vault').innerHTML = levels.length
+    ? levels.map((v) => `<div class="level ${v.cracked ? 'open' : ''}"><span class="lk">${lockSvg(v.cracked)}</span>` +
+        `<b>${esc(v.title)}</b><span class="val">${v.points}<small>points</small></span>` +
+        `<span class="meta">${v.cracked ? `Cracked by ${v.cracked}. First: <em>${esc(v.first)}</em>` : 'Not cracked yet. First in gets +2.'}</span></div>`).join('')
+    : '<p class="empty">The Vault isn\'t open yet.</p>';
+
+  // latest captures
+  sync($('recent'), b.recent.slice(0, 8), (c) => `${c.attacker}|${c.target}|${c.at}`, (c) => {
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="slot"></span><p></p><span class="plus"></span>';
+    li.querySelector('.slot').replaceWith(avatar(c.attacker, 2));
+    li.querySelector('p').innerHTML = c.vault
+      ? `<b>${esc(c.attacker)}</b> <span>cracked</span> ${esc(c.title || c.target)}`
+      : `<b>${esc(c.attacker)}</b> <span>took a flag from</span> ${esc(c.target)}`;
+    const plus = li.querySelector('.plus');
+    plus.textContent = `+${c.points}${c.vault && c.first ? ' first!' : ''}`;
+    if (c.vault && c.first) plus.classList.add('first');
+    return li;
+  }, () => {});
+  empty($('recent'), 'Nothing yet.');
+
+  // a new capture since the last refresh gets the spotlight (not the ones already there when the page opened)
+  const newest = b.recent[0];
+  const id = newest ? `${newest.attacker}|${newest.target}|${newest.at}` : null;
+  if (lastCapture !== null && id && id !== lastCapture) announce(newest, b);
+  lastCapture = id || '';
+
+  // desks
+  sync($('targets'), b.targets, (t) => t.handle, (t) => {
+    const li = document.createElement('li');
+    li.className = 'desk';
+    li.innerHTML = '<span class="slot"></span><span><b></b><a target="_blank" rel="noopener"></a></span><span class="flags"></span>';
+    li.querySelector('.slot').replaceWith(avatar(t.handle, 2));
+    return li;
+  }, (li, t) => {
+    li.querySelector('b').textContent = t.handle;
+    const a = li.querySelector('a');
+    a.href = `${t.url}/dev-ui/`;
+    a.textContent = t.url.replace('https://', '');
+    li.querySelector('.flags').innerHTML = Array.from({ length: t.flags }, (_, n) => `<i class="${n < t.lost ? 'gone' : ''}"></i>`).join('');
+    li.querySelector('.flags').title = `${t.flags - t.lost} of ${t.flags} flags left`;
+  });
+  empty($('targets'), 'No one has deployed yet.');
+
+  // evals
+  sync($('evals'), b.evals, (e) => e.handle, (e) => {
+    const li = document.createElement('li');
+    li.className = 'ev';
+    li.innerHTML = '<span class="slot"></span><b></b><span class="bar"><span style="width:0"></span></span><span class="pc"></span>';
+    li.querySelector('.slot').replaceWith(avatar(e.handle, 2));
+    return li;
+  }, (li, e) => {
+    li.querySelector('b').textContent = e.handle;
+    requestAnimationFrame(() => { li.querySelector('.bar span').style.width = `${e.best}%`; });
+    li.querySelector('.pc').textContent = `${e.best}%`;
+    li.title = `${e.runs} run${e.runs === 1 ? '' : 's'}, latest ${e.latest}%`;
+  });
+  empty($('evals'), 'No scores yet.');
 }
-refresh(); setInterval(refresh, 10000);
+refresh();
+setInterval(refresh, 10000);
 </script>
 </body>
 </html>
